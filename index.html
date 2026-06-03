@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Africa Weather AI</title>
+    <title>AFRICA WEATHER AI — Live Weather & Smart Insights</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -15,8 +15,8 @@
         <!-- Header -->
         <header class="header">
             <div class="header-content">
-                <h1 class="app-title">Africa Weather AI</h1>
-                <p class="app-subtitle">Real-time Weather & Smart Insights</p>
+                <h1 class="app-title">AFRICA WEATHER AI</h1>
+                <p class="app-subtitle">Live weather for every African place — real, immersive, instant</p>
             </div>
         </header>
 
@@ -32,6 +32,18 @@
                 <button id="useLocationBtn" class="location-btn" title="Use my location">
                     📍 Use Location
                 </button>
+            </div>
+            <div class="location-details">
+                <div id="countryList" class="country-list" aria-hidden="false"></div>
+                <div class="granular-location">
+                    <input id="regionInput" placeholder="Region / State / Province" />
+                    <input id="wardInput" placeholder="Ward / District" />
+                    <input id="villageInput" placeholder="Village / Locality" />
+                </div>
+                <div class="ai-query">
+                    <input id="aiQuestionInput" placeholder="Ask the AI about today's weather..." />
+                    <button id="askAiBtn">Ask</button>
+                </div>
             </div>
         </div>
 
@@ -109,7 +121,7 @@
 
         <!-- Footer -->
         <footer class="footer">
-            <p>Developed by <strong>Fahad Mohamed</strong> | Tanzania 🇹🇿</p>
+            <p class="dev-credit"><span class="dev-badge">FAHAD MOHAME</span> <strong>Fahad Mohamed</strong> — Tanzania 🇹🇿</p>
             <p>Contact: <a href="mailto:fahadmohamedmalibiche@gmail.com">fahadmohamedmalibiche@gmail.com</a></p>
             <p class="version">Africa Weather AI v1.0</p>
         </footer>
@@ -117,6 +129,7 @@
 
     <!-- Scripts -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="js/config.js"></script>
     <script src="js/african-countries.js"></script>
     <script src="js/background.js"></script>
     <script src="js/weather-api.js"></script>
