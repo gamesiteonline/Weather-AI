@@ -1,5 +1,6 @@
 # Africa Weather AI 🌍☀️
 
+#live at `https://weather-ai-africa.netlify.app/`
 A modern, real-time weather web application designed specifically for African countries, featuring AI-powered suggestions, beautiful glass morphism design, and immersive 3D backgrounds.
 
 ## ✨ Features
