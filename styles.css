@@ -1,0 +1,593 @@
+/* ============================================
+   Africa Weather AI - Styles
+   Modern UI with Glass Morphism & Dark Theme
+   ============================================ */
+
+:root {
+    /* Colors - African inspired palette */
+    --primary: #FF6B35;          /* Warm orange */
+    --secondary: #004E89;        /* Deep blue */
+    --accent: #1AB5A3;           /* Teal */
+    --success: #2DD4BF;          /* Light teal */
+    --danger: #FF4757;           /* Red */
+    --warning: #FFA502;          /* Amber */
+    --dark: #0F1419;             /* Very dark blue-grey */
+    --light: #F5F5F5;            /* Light grey */
+    --glass-bg: rgba(255, 255, 255, 0.05);
+    --glass-border: rgba(255, 255, 255, 0.1);
+    --text-primary: #FFFFFF;
+    --text-secondary: #B0B0B0;
+    
+    /* Spacing */
+    --space-xs: 0.5rem;
+    --space-sm: 1rem;
+    --space-md: 1.5rem;
+    --space-lg: 2rem;
+    --space-xl: 3rem;
+    
+    /* Border radius */
+    --radius-sm: 0.5rem;
+    --radius-md: 1rem;
+    --radius-lg: 1.5rem;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, var(--dark) 0%, #1a2332 50%, var(--dark) 100%);
+    background-attachment: fixed;
+    color: var(--text-primary);
+    line-height: 1.6;
+    overflow-x: hidden;
+}
+
+/* ============================================
+   Canvas Container (Three.js)
+   ============================================ */
+
+#canvas-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    pointer-events: none;
+}
+
+/* ============================================
+   App Container & Layout
+   ============================================ */
+
+.app-container {
+    position: relative;
+    z-index: 10;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    backdrop-filter: blur(10px);
+}
+
+/* ============================================
+   Header
+   ============================================ */
+
+.header {
+    background: var(--glass-bg);
+    border-bottom: 1px solid var(--glass-border);
+    backdrop-filter: blur(10px);
+    padding: var(--space-xl) var(--space-lg);
+    text-align: center;
+    animation: slideDown 0.6s ease-out;
+}
+
+.app-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: var(--space-xs);
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.app-subtitle {
+    font-size: 1rem;
+    color: var(--text-secondary);
+    letter-spacing: 0.5px;
+}
+
+/* ============================================
+   Controls Section
+   ============================================ */
+
+.controls-section {
+    padding: var(--space-lg);
+    background: var(--glass-bg);
+    border-bottom: 1px solid var(--glass-border);
+    backdrop-filter: blur(10px);
+}
+
+.search-bar {
+    display: flex;
+    gap: var(--space-sm);
+    max-width: 600px;
+    margin: 0 auto;
+    animation: slideUp 0.6s ease-out 0.1s both;
+}
+
+.search-input {
+    flex: 1;
+    padding: var(--space-sm) var(--space-md);
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-md);
+    color: var(--text-primary);
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+}
+
+.search-input::placeholder {
+    color: var(--text-secondary);
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 20px rgba(26, 181, 163, 0.3);
+}
+
+.location-btn {
+    padding: var(--space-sm) var(--space-md);
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    border: none;
+    border-radius: var(--radius-md);
+    color: white;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.location-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px rgba(255, 107, 53, 0.4);
+}
+
+.location-btn:active {
+    transform: translateY(0);
+}
+
+/* ============================================
+   Main Content
+   ============================================ */
+
+.main-content {
+    flex: 1;
+    padding: var(--space-xl) var(--space-lg);
+    max-width: 1400px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+/* ============================================
+   Weather Widget (Main Hero)
+   ============================================ */
+
+.weather-widget {
+    margin-bottom: var(--space-xl);
+    min-height: 300px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: fadeInScale 0.8s ease-out;
+}
+
+.weather-content {
+    width: 100%;
+    text-align: center;
+}
+
+.weather-widget.glass-morphism {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    backdrop-filter: blur(20px);
+    border-radius: var(--radius-lg);
+    padding: var(--space-xl);
+}
+
+.loading-spinner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-md);
+}
+
+.spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px solid var(--glass-border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* ============================================
+   Glass Morphism Style
+   ============================================ */
+
+.glass-morphism {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-radius: var(--radius-lg);
+    transition: all 0.3s ease;
+}
+
+.glass-morphism:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.15);
+    transform: translateY(-4px);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+/* ============================================
+   Bento Grid Layout
+   ============================================ */
+
+.bento-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: var(--space-lg);
+    margin-top: var(--space-xl);
+}
+
+.bento-card {
+    padding: var(--space-lg);
+    border-radius: var(--radius-lg);
+    animation: fadeInUp 0.6s ease-out;
+}
+
+.bento-card h3 {
+    font-size: 1.1rem;
+    margin-bottom: var(--space-md);
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+}
+
+.bento-card.card-large {
+    grid-column: span 1;
+    min-height: 280px;
+}
+
+.bento-card.card-full {
+    grid-column: 1 / -1;
+}
+
+.card-content {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    line-height: 1.8;
+}
+
+.placeholder {
+    color: var(--text-secondary);
+    font-style: italic;
+    padding: var(--space-md) 0;
+}
+
+/* ============================================
+   Forecast Container
+   ============================================ */
+
+.forecast-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: var(--space-md);
+}
+
+.forecast-day {
+    padding: var(--space-md);
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: var(--radius-md);
+    text-align: center;
+    border: 1px solid var(--glass-border);
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+
+.forecast-day:hover {
+    background: rgba(255, 107, 53, 0.12);
+    border-color: var(--primary);
+    transform: translateY(-2px);
+}
+
+.forecast-graph {
+    display: grid;
+    gap: 6px;
+    justify-items: center;
+    align-items: end;
+    margin: 0.8rem 0;
+    min-height: 70px;
+}
+
+.forecast-bar {
+    width: 40px;
+    border-radius: 18px 18px 0 0;
+    transition: all 0.3s ease;
+}
+
+.forecast-bar.max {
+    background: linear-gradient(180deg, #1AB5A3 0%, rgba(26, 181, 163, 0.3) 100%);
+}
+
+.forecast-bar.min {
+    background: linear-gradient(180deg, #FF6B35 0%, rgba(255, 107, 53, 0.25) 100%);
+}
+
+.forecast-temps {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.4rem;
+}
+
+.forecast-day-name {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-bottom: var(--space-xs);
+}
+
+.forecast-temp {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: var(--space-xs) 0;
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.forecast-condition {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+    .suggestions-summary {
+        color: #FFFFFF;
+        margin-bottom: 1rem;
+        line-height: 1.6;
+    }
+
+    .suggestions-block {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: var(--space-sm);
+        margin-top: 1rem;
+    }
+
+    .suggestions-block div {
+        background: rgba(255, 255, 255, 0.05);
+        padding: var(--space-md);
+        border-radius: var(--radius-md);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .suggestions-block strong {
+        display: block;
+        margin-bottom: 0.6rem;
+        color: var(--text-primary);
+        font-size: 0.95rem;
+    }
+
+    .suggestions-event-chips {
+        margin-top: 1rem;
+    }
+
+    .suggestions-event-chips .activity-chip {
+        margin-right: 0.4rem;
+    }
+
+    background: var(--glass-bg);
+    border-top: 1px solid var(--glass-border);
+    backdrop-filter: blur(10px);
+    padding: var(--space-lg);
+    text-align: center;
+    color: var(--text-secondary);
+    margin-top: auto;
+    font-size: 0.9rem;
+}
+
+.footer p {
+    margin: var(--space-xs) 0;
+}
+
+.version {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    opacity: 0.7;
+}
+
+/* ============================================
+   Animations
+   ============================================ */
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeInScale {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ============================================
+   Responsive Design
+   ============================================ */
+
+@media (max-width: 1024px) {
+    .main-content {
+        padding: var(--space-lg) var(--space-md);
+    }
+    
+    .app-title {
+        font-size: 2rem;
+    }
+    
+    .bento-grid {
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: var(--space-md);
+    }
+}
+
+@media (max-width: 768px) {
+    .header {
+        padding: var(--space-lg) var(--space-md);
+    }
+    
+    .app-title {
+        font-size: 1.8rem;
+    }
+    
+    .search-bar {
+        flex-direction: column;
+    }
+    
+    .location-btn {
+        width: 100%;
+    }
+    
+    .main-content {
+        padding: var(--space-lg) var(--space-sm);
+    }
+    
+    .bento-grid {
+        grid-template-columns: 1fr;
+        gap: var(--space-md);
+    }
+    
+    .bento-card.card-large,
+    .bento-card.card-full {
+        grid-column: auto;
+    }
+    
+    .weather-widget {
+        min-height: 200px;
+    }
+}
+
+@media (max-width: 480px) {
+    .app-title {
+        font-size: 1.5rem;
+    }
+    
+    .app-subtitle {
+        font-size: 0.9rem;
+    }
+    
+    .controls-section {
+        padding: var(--space-md) var(--space-sm);
+    }
+    
+    .search-input,
+    .location-btn {
+        padding: var(--space-sm) var(--space-md);
+        font-size: 0.95rem;
+    }
+    
+    .bento-card {
+        padding: var(--space-md);
+    }
+    
+    .bento-card h3 {
+        font-size: 1rem;
+    }
+    
+    .forecast-container {
+        grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+        gap: var(--space-sm);
+    }
+}
+
+/* ============================================
+   Utility Classes
+   ============================================ */
+
+.text-primary {
+    color: var(--primary);
+}
+
+.text-accent {
+    color: var(--accent);
+}
+
+.text-success {
+    color: var(--success);
+}
+
+.text-danger {
+    color: var(--danger);
+}
+
+.text-warning {
+    color: var(--warning);
+}
+
+.gradient-text {
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}

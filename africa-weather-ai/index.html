@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AFRICA WEATHER AI</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Navigation -->
+        <nav class="navbar">
+            <div class="nav-brand">
+                <i class="fas fa-cloud-sun"></i>
+                <span>AFRICA WEATHER AI</span>
+            </div>
+            <div class="nav-actions">
+                <button class="location-btn" id="locationBtn">
+                    <i class="fas fa-location-dot"></i>
+                </button>
+                <button class="theme-toggle" id="themeToggle">
+                    <i class="fas fa-moon"></i>
+                </button>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- 3D Canvas Container -->
+            <div class="canvas-container" id="canvasContainer"></div>
+
+            <!-- Hero Weather Card -->
+            <section class="hero-section">
+                <div class="loading-spinner" id="loadingSpinner">
+                    <div class="spinner"></div>
+                </div>
+                
+                <div class="hero-card glass-morphism" id="heroCard" style="display: none;">
+                    <div class="hero-background"></div>
+                    <div class="hero-content">
+                        <h1 class="city-name" id="cityName">Loading...</h1>
+                        <p class="country-name" id="countryName"></p>
+                        
+                        <div class="main-weather">
+                            <div class="temperature-display">
+                                <span class="temp" id="temperature">--</span>
+                                <span class="unit">°C</span>
+                            </div>
+                            <div class="weather-icon-large" id="weatherIconLarge">
+                                <i class="fas fa-cloud-sun"></i>
+                            </div>
+                        </div>
+                        
+                        <p class="weather-description" id="weatherDescription">--</p>
+                        <p class="feels-like">Feels like <span id="feelsLike">--</span>°C</p>
+                    </div>
+                </div>
+
+                <div class="error-message glass-morphism" id="errorMessage" style="display: none;">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <p id="errorText"></p>
+                </div>
+            </section>
+
+            <!-- Bento Box Grid Layout -->
+            <section class="bento-grid" id="bentoGrid" style="display: none;">
+                
+                <!-- Weather Details Card -->
+                <div class="bento-card glass-morphism card-details">
+                    <h3>Weather Details</h3>
+                    <div class="details-grid">
+                        <div class="detail-item">
+                            <div class="detail-icon">
+                                <i class="fas fa-water"></i>
+                            </div>
+                            <div class="detail-info">
+                                <span class="detail-label">Humidity</span>
+                                <span class="detail-value" id="humidity">--%</span>
+                            </div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-icon">
+                                <i class="fas fa-wind"></i>
+                            </div>
+                            <div class="detail-info">
+                                <span class="detail-label">Wind Speed</span>
+                                <span class="detail-value" id="windSpeed">-- km/h</span>
+                            </div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-icon">
+                                <i class="fas fa-compress"></i>
+                            </div>
+                            <div class="detail-info">
+                                <span class="detail-label">Pressure</span>
+                                <span class="detail-value" id="pressure">-- mb</span>
+                            </div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-icon">
+                                <i class="fas fa-eye"></i>
+                            </div>
+                            <div class="detail-info">
+                                <span class="detail-label">Visibility</span>
+                                <span class="detail-value" id="visibility">-- km</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- UV Index Card -->
+                <div class="bento-card glass-morphism card-uv">
+                    <h3>UV Index</h3>
+                    <div class="uv-meter">
+                        <div class="uv-circle">
+                            <span class="uv-value" id="uvIndex">-</span>
+                        </div>
+                        <div class="uv-label" id="uvLabel">--</div>
+                    </div>
+                    <p class="uv-description">Use high SPF sunscreen</p>
+                </div>
+
+                <!-- Air Quality Card -->
+                <div class="bento-card glass-morphism card-air">
+                    <h3>Air Quality</h3>
+                    <div class="air-quality">
+                        <div class="aq-circle">
+                            <span class="aq-value" id="aqIndex">--</span>
+                        </div>
+                        <span class="aq-status" id="aqStatus">Good</span>
+                    </div>
+                </div>
+
+                <!-- Weather Chart Card -->
+                <div class="bento-card glass-morphism card-chart">
+                    <h3>24-Hour Forecast</h3>
+                    <canvas id="weatherChart"></canvas>
+                </div>
+
+                <!-- Sunrise/Sunset Card -->
+                <div class="bento-card glass-morphism card-sun">
+                    <h3>Sun Times</h3>
+                    <div class="sun-times">
+                        <div class="sun-item">
+                            <i class="fas fa-sunrise"></i>
+                            <div>
+                                <span class="sun-label">Sunrise</span>
+                                <span class="sun-time" id="sunrise">--:--</span>
+                            </div>
+                        </div>
+                        <div class="sun-item">
+                            <i class="fas fa-sunset"></i>
+                            <div>
+                                <span class="sun-label">Sunset</span>
+                                <span class="sun-time" id="sunset">--:--</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- AI Suggestions Card -->
+                <div class="bento-card glass-morphism card-ai-main">
+                    <h3>AI Insights & Suggestions</h3>
+                    <div class="ai-tabs">
+                        <button class="ai-tab active" data-tab="events">Events</button>
+                        <button class="ai-tab" data-tab="activities">Activities</button>
+                        <button class="ai-tab" data-tab="food">Food</button>
+                        <button class="ai-tab" data-tab="dangers">Cautions</button>
+                    </div>
+                    <div class="ai-content" id="aiEvents">
+                        <ul id="eventsList"></ul>
+                    </div>
+                    <div class="ai-content" id="aiActivities" style="display: none;">
+                        <ul id="activitiesList"></ul>
+                    </div>
+                    <div class="ai-content" id="aiFood" style="display: none;">
+                        <ul id="foodList"></ul>
+                    </div>
+                    <div class="ai-content" id="aiDangers" style="display: none;">
+                        <ul id="dangersList"></ul>
+                    </div>
+                </div>
+
+                <!-- Recommendations Card -->
+                <div class="bento-card glass-morphism card-recommendations">
+                    <h3>What To Do / What To Avoid</h3>
+                    <div class="recommendations">
+                        <div class="rec-section">
+                            <h4><i class="fas fa-check-circle"></i> Do</h4>
+                            <ul id="doList"></ul>
+                        </div>
+                        <div class="rec-section">
+                            <h4><i class="fas fa-times-circle"></i> Avoid</h4>
+                            <ul id="avoidList"></ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Predictions Card -->
+                <div class="bento-card glass-morphism card-predictions">
+                    <h3>What Might Happen</h3>
+                    <ul id="predictionsList"></ul>
+                </div>
+
+                <!-- Advantages Card -->
+                <div class="bento-card glass-morphism card-advantages">
+                    <h3>Advantages & Opportunities</h3>
+                    <ul id="advantagesList"></ul>
+                </div>
+
+            </section>
+
+            <!-- Forecast Section -->
+            <section class="forecast-section" id="forecastSection" style="display: none;">
+                <h2>5-Day Forecast</h2>
+                <div class="forecast-grid" id="forecastGrid">
+                    <!-- Filled by JavaScript -->
+                </div>
+            </section>
+        </main>
+
+        <!-- Developer Credits -->
+        <footer class="footer glass-morphism">
+            <div class="credits">
+                <p><strong>AFRICA WEATHER AI</strong> - Made with ❤️</p>
+                <p>Developer: <strong>Fahad Mohamed</strong></p>
+                <p>Location: Tanzania 🇹🇿</p>
+                <p>Email: <a href="mailto:fahadmohamedmalibiche@gmail.com">fahadmohamedmalibiche@gmail.com</a></p>
+            </div>
+            <div class="tech-stack">
+                <p>Built with: Three.js, Chart.js & AI</p>
+            </div>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

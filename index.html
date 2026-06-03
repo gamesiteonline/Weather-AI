@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Africa Weather AI</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- 3D Canvas for Three.js background -->
+    <div id="canvas-container"></div>
+
+    <!-- Main Weather Application -->
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <h1 class="app-title">Africa Weather AI</h1>
+                <p class="app-subtitle">Real-time Weather & Smart Insights</p>
+            </div>
+        </header>
+
+        <!-- Search and Controls -->
+        <div class="controls-section">
+            <div class="search-bar">
+                <input 
+                    type="text" 
+                    id="countrySearch" 
+                    class="search-input" 
+                    placeholder="Search African countries..."
+                >
+                <button id="useLocationBtn" class="location-btn" title="Use my location">
+                    📍 Use Location
+                </button>
+            </div>
+        </div>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Weather Widget (Glass Morphism) -->
+            <section class="weather-widget glass-morphism">
+                <div id="weatherContent" class="weather-content">
+                    <div class="loading-spinner">
+                        <div class="spinner"></div>
+                        <p>Loading weather data...</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Bento Grid Layout -->
+            <div class="bento-grid">
+                <!-- Current Weather Card -->
+                <div class="bento-card glass-morphism card-large">
+                    <h3>Current Conditions</h3>
+                    <div id="currentWeather" class="card-content">
+                        <div class="placeholder">Select a country</div>
+                    </div>
+                </div>
+
+                <!-- AI Suggestions Card -->
+                <div class="bento-card glass-morphism">
+                    <h3>🤖 AI Suggestions</h3>
+                    <div id="aiSuggestions" class="card-content">
+                        <div class="placeholder">Weather data loading...</div>
+                    </div>
+                </div>
+
+                <!-- Activities Card -->
+                <div class="bento-card glass-morphism">
+                    <h3>🎯 Recommended Activities</h3>
+                    <div id="activities" class="card-content">
+                        <div class="placeholder">Based on weather</div>
+                    </div>
+                </div>
+
+                <!-- Local Cuisine Card -->
+                <div class="bento-card glass-morphism">
+                    <h3>🍽️ Local Cuisine</h3>
+                    <div id="cuisine" class="card-content">
+                        <div class="placeholder">Weather-based recommendations</div>
+                    </div>
+                </div>
+
+                <!-- Dangers Card -->
+                <div class="bento-card glass-morphism">
+                    <h3>⚠️ Weather Warnings</h3>
+                    <div id="dangers" class="card-content">
+                        <div class="placeholder">Safety information</div>
+                    </div>
+                </div>
+
+                <!-- Advantages Card -->
+                <div class="bento-card glass-morphism">
+                    <h3>✨ Today's Advantages</h3>
+                    <div id="advantages" class="card-content">
+                        <div class="placeholder">Opportunities today</div>
+                    </div>
+                </div>
+
+                <!-- 7-Day Forecast Card -->
+                <div class="bento-card glass-morphism card-full">
+                    <h3>📅 7-Day Forecast</h3>
+                    <div id="forecast" class="forecast-container">
+                        <div class="placeholder">Forecast loading...</div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>Developed by <strong>Fahad Mohamed</strong> | Tanzania 🇹🇿</p>
+            <p>Contact: <a href="mailto:fahadmohamedmalibiche@gmail.com">fahadmohamedmalibiche@gmail.com</a></p>
+            <p class="version">Africa Weather AI v1.0</p>
+        </footer>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="js/african-countries.js"></script>
+    <script src="js/background.js"></script>
+    <script src="js/weather-api.js"></script>
+    <script src="js/ai-suggestions.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,37 @@
+{
+  "name": "africa-weather-ai",
+  "version": "1.0.0",
+  "description": "AFRICA WEATHER AI - Sophisticated weather app for African countries with AI insights and glassmorphism design",
+  "main": "index.html",
+  "type": "module",
+  "scripts": {
+    "start": "python3 -m http.server 8000",
+    "dev": "python3 -m http.server 8000",
+    "build": "echo 'No build step required - static site'",
+    "serve": "http-server -p 8000"
+  },
+  "keywords": [
+    "weather",
+    "africa",
+    "ai",
+    "glassmorphism",
+    "three.js",
+    "real-time",
+    "dashboard"
+  ],
+  "author": "Fahad Mohamed <fahadmohamedmalibiche@gmail.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/africa-weather-ai"
+  },
+  "devDependencies": {
+    "http-server": "^14.1.1"
+  },
+  "browserslist": [
+    "last 2 versions",
+    "Firefox >= 90",
+    "Chrome >= 90",
+    "Safari >= 14"
+  ]
+}
