@@ -10,6 +10,10 @@ class AppManager {
         this.map = null;
         this.marker = null;
         this.autocomplete = null;
+        this.leafletMap = null;
+        this.leafletMarker = null;
+        this.mapProvider = null;
+        this.mapContainer = null;
         this.init();
     }
 
@@ -22,8 +26,8 @@ class AppManager {
         // Add event listeners
         this.setupEventListeners();
         
-        // Initialize Google Maps and autocomplete if API key exists
-        await this.initGoogleMap();
+        // Initialize map provider (Google Maps if available, otherwise Leaflet)
+        await this.initMapProvider();
         
         // Try to load a random country on startup
         this.loadRandomCountry();
@@ -39,10 +43,19 @@ class AppManager {
     async initGoogleMap() {
         const apiKey = window.CONFIG?.GOOGLE_MAPS_API_KEY;
         const mapContainer = document.getElementById('map');
-        if (!apiKey || !mapContainer) return;
+        if (!apiKey || !mapContainer) return false;
+
+        this.mapContainer = mapContainer;
+        window.gm_authFailure = () => {
+            throw new Error('Google Maps authentication failed');
+        };
 
         try {
             await this.loadGoogleMapsScript(apiKey);
+
+            if (!window.google?.maps) {
+                throw new Error('Google Maps library is not available after script load');
+            }
 
             const africaCenter = { lat: 4.2, lng: 21.0 };
             this.map = new google.maps.Map(mapContainer, {
@@ -59,6 +72,22 @@ class AppManager {
             });
 
             this.marker = new google.maps.Marker({ map: this.map });
+            this.mapProvider = 'google';
+
+            const checkMapHealth = (attempts = 0) => {
+                if (mapContainer.querySelector('.gm-err-title') || mapContainer.innerText.includes('Oops! Something went wrong')) {
+                    this.initLeafletMap()
+                        .catch((leafletError) => {
+                            console.error('Leaflet fallback failed:', leafletError);
+                            this.showMapFallback('Google Maps unavailable and the free map fallback failed.');
+                        });
+                    return;
+                }
+                if (attempts < 8) {
+                    setTimeout(() => checkMapHealth(attempts + 1), 300);
+                }
+            };
+            checkMapHealth();
 
             if (window.google && google.maps && google.maps.places && window.uiManager?.elements.countrySearch) {
                 this.autocomplete = new google.maps.places.Autocomplete(window.uiManager.elements.countrySearch, {
@@ -69,8 +98,11 @@ class AppManager {
                     this.handlePlaceAutocomplete();
                 });
             }
+
+            return true;
         } catch (error) {
             console.warn('Google Maps initialization failed:', error);
+            return false;
         }
     }
 
@@ -86,6 +118,10 @@ class AppManager {
                 delete window.initGoogleMaps;
             };
 
+            window.gm_authFailure = () => {
+                reject(new Error('Google Maps authentication failed'));
+            };
+
             const script = document.createElement('script');
             script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&callback=initGoogleMaps`;
             script.async = true;
@@ -95,8 +131,50 @@ class AppManager {
         });
     }
 
+    async initLeafletMap() {
+        const mapContainer = document.getElementById('map');
+        if (!mapContainer || !window.L) {
+            throw new Error('Leaflet not available');
+        }
+
+        this.mapContainer = mapContainer;
+        mapContainer.innerHTML = '';
+
+        this.leafletMap = window.L.map(mapContainer).setView([4.2, 21.0], 4);
+        window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(this.leafletMap);
+
+        this.leafletMarker = window.L.marker([4.2, 21.0]).addTo(this.leafletMap);
+        this.mapProvider = 'leaflet';
+    }
+
+    showMapFallback(message) {
+        if (!this.mapContainer) return;
+        this.mapContainer.innerHTML = `
+            <div class="map-fallback">
+                <strong>Map Unavailable</strong>
+                <p>${message}</p>
+            </div>
+        `;
+        this.mapContainer.classList.add('map-fallback-visible');
+    }
+
+    async initMapProvider() {
+        const success = await this.initGoogleMap();
+        if (success) return;
+
+        try {
+            await this.initLeafletMap();
+        } catch (leafletError) {
+            console.error('Leaflet fallback failed:', leafletError);
+            this.showMapFallback('No map provider is available right now.');
+        }
+    }
+
     handlePlaceAutocomplete() {
-        const place = this.autocomplete.getPlace();
+        const place = this.autocomplete?.getPlace?.();
         if (!place || !place.geometry) return;
 
         const lat = place.geometry.location.lat();
@@ -108,11 +186,20 @@ class AppManager {
     }
 
     updateMapMarker(lat, lng, label = '') {
-        if (!this.map || !this.marker) return;
-        this.marker.setPosition({ lat, lng });
-        this.marker.setTitle(label);
-        this.map.panTo({ lat, lng });
-        this.map.setZoom(7);
+        if (this.mapProvider === 'google' && this.map && this.marker) {
+            this.marker.setPosition({ lat, lng });
+            this.marker.setTitle(label);
+            this.map.panTo({ lat, lng });
+            this.map.setZoom(7);
+            return;
+        }
+
+        if (this.mapProvider === 'leaflet' && this.leafletMap && this.leafletMarker) {
+            this.leafletMarker.setLatLng([lat, lng]);
+            this.leafletMarker.bindPopup(label || 'Location').openPopup();
+            this.leafletMap.setView([lat, lng], 7);
+            return;
+        }
     }
 
     reorderCountryListByCurrent(currentKey) {
