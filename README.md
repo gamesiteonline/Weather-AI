@@ -45,8 +45,8 @@ Includes weather data for:
 
 1. **Clone or download the project**
 ```bash
-git clone <repository-url>
-cd africa-weather-ai
+git clone https://github.com/gamesiteonline/Weather-AI.git
+cd africa-weather-ai 
 ```
 
 2. **Open in browser**
