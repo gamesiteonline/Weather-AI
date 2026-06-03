@@ -12,6 +12,15 @@ class UIManager {
         return {
             countrySearch: document.getElementById('countrySearch'),
             useLocationBtn: document.getElementById('useLocationBtn'),
+            settingsBtn: document.getElementById('settingsBtn'),
+            settingsPanel: document.getElementById('settingsPanel'),
+            sharePanel: document.getElementById('sharePanel'),
+            regionInput: document.getElementById('regionInput'),
+            wardInput: document.getElementById('wardInput'),
+            villageInput: document.getElementById('villageInput'),
+            aiQuestionInput: document.getElementById('aiQuestionInput'),
+            askAiBtn: document.getElementById('askAiBtn'),
+            countryList: document.getElementById('countryList'),
             weatherContent: document.getElementById('weatherContent'),
             currentWeather: document.getElementById('currentWeather'),
             aiSuggestions: document.getElementById('aiSuggestions'),
@@ -37,6 +46,29 @@ class UIManager {
             this.elements.useLocationBtn.addEventListener('click', () => {
                 this.onUseLocationClick();
             });
+        }
+
+        if (this.elements.settingsBtn && this.elements.settingsPanel) {
+            this.elements.settingsBtn.addEventListener('click', () => {
+                this.toggleSettingsPanel();
+            });
+        }
+
+        // AI question handling
+        if (this.elements.askAiBtn && this.elements.aiQuestionInput) {
+            this.elements.askAiBtn.addEventListener('click', () => {
+                const q = this.elements.aiQuestionInput.value;
+                const answer = window.aiSuggestions.ask(q, window.appManager?.currentWeather || null);
+                this.showAIAnswer(answer);
+            });
+            this.elements.aiQuestionInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') this.elements.askAiBtn.click();
+            });
+        }
+
+        // Render country list if available
+        if (this.elements.countryList && typeof getCountriesList === 'function') {
+            this.displayCountryList(getCountriesList());
         }
     }
 
@@ -79,6 +111,68 @@ class UIManager {
             </div>
         `;
         this.elements.weatherContent.innerHTML = html;
+        this.updateWeatherCardState(weather);
+    }
+
+    updateWeatherCardState(weather) {
+        if (!this.elements.weatherContent) return;
+
+        const widget = this.elements.weatherContent.querySelector('.weather-widget-content');
+        if (!widget) return;
+
+        widget.classList.add('rounded');
+        if (weather.current.precipitation > 40) {
+            widget.classList.add('weather-shake');
+        } else {
+            widget.classList.remove('weather-shake');
+        }
+    }
+
+    renderShareButtons(weather, country) {
+        if (!this.elements.sharePanel) return;
+
+        const pageUrl = encodeURIComponent(window.location.href);
+        const shareText = encodeURIComponent(`${country} weather: ${weather.current.temperature}°C, ${weather.current.condition}.`);
+
+        const actions = [
+            {
+                label: 'Twitter',
+                url: `https://twitter.com/intent/tweet?text=${shareText}&url=${pageUrl}`
+            },
+            {
+                label: 'Facebook',
+                url: `https://www.facebook.com/sharer/sharer.php?u=${pageUrl}`
+            },
+            {
+                label: 'LinkedIn',
+                url: `https://www.linkedin.com/shareArticle?mini=true&url=${pageUrl}&title=${shareText}`
+            }
+        ];
+
+        let html = actions.map(action => `
+            <a class="share-button" href="${action.url}" target="_blank" rel="noopener noreferrer">${action.label}</a>
+        `).join('');
+
+        if (navigator.share) {
+            html += `<button id="nativeShareBtn" class="share-button">Share</button>`;
+        }
+
+        this.elements.sharePanel.innerHTML = html;
+
+        const nativeShareBtn = document.getElementById('nativeShareBtn');
+        if (nativeShareBtn) {
+            nativeShareBtn.addEventListener('click', async () => {
+                try {
+                    await navigator.share({
+                        title: `${country} Weather`,
+                        text: `${country} weather is ${weather.current.temperature}°C and ${weather.current.condition}.`,
+                        url: window.location.href
+                    });
+                } catch (shareError) {
+                    console.warn('Native share canceled or failed', shareError);
+                }
+            });
+        }
     }
 
     displayCurrentWeather(weather) {
@@ -231,12 +325,46 @@ class UIManager {
 
         return `A ${modifiers.join(', ')} day with ${condition}, ${humidity}% humidity and ${wind} km/h wind.`;
     }
-        if (results.length === 0) {
+    displaySearchResults(results) {
+        if (!results || results.length === 0) {
             return this.showNotification('No African countries found', 'info');
         }
 
-        // Optionally show search results in a dropdown or similar
+        // For now, log results and optionally render a simple list in console
         console.log('Search results:', results);
+        // TODO: implement a dropdown UI for search suggestions
+    }
+
+    displayCountryList(countries) {
+        if (!this.elements.countryList || !Array.isArray(countries)) return;
+        const frag = document.createDocumentFragment();
+        countries.forEach(c => {
+            const btn = document.createElement('button');
+            btn.className = 'country-item';
+            btn.textContent = c.name;
+            btn.title = c.name;
+            btn.addEventListener('click', () => {
+                const ev = new CustomEvent('countrySelected', { detail: { key: c.key, name: c.name } });
+                document.dispatchEvent(ev);
+            });
+            frag.appendChild(btn);
+        });
+        this.elements.countryList.innerHTML = '';
+        this.elements.countryList.appendChild(frag);
+    }
+
+    showAIAnswer(answer) {
+        if (!this.elements.aiSuggestions) return;
+        const container = this.elements.aiSuggestions;
+        const node = document.createElement('div');
+        node.className = 'ai-answer';
+        node.style.marginTop = '0.8rem';
+        node.style.padding = '0.8rem';
+        node.style.background = 'rgba(255,255,255,0.03)';
+        node.style.border = '1px solid rgba(255,255,255,0.04)';
+        node.style.borderRadius = '0.6rem';
+        node.textContent = answer;
+        container.prepend(node);
     }
 
     showLoadingState() {
@@ -298,9 +426,16 @@ class UIManager {
         }, 3000);
     }
 
+    toggleSettingsPanel() {
+        if (!this.elements.settingsPanel) return;
+        this.elements.settingsPanel.classList.toggle('hidden');
+    }
+
     getStarRating(rating) {
-        const fullStars = Math.floor(rating);
-        const halfStar = rating % 1 >= 0.5 ? 1 : 0;
+        // Ensure rating is a finite number and clamp between 0 and 5
+        const r = isFinite(Number(rating)) ? Math.max(0, Math.min(5, Number(rating))) : 5;
+        const fullStars = Math.floor(r);
+        const halfStar = (r - fullStars) >= 0.5 ? 1 : 0;
         const emptyStars = 5 - fullStars - halfStar;
 
         return '⭐'.repeat(fullStars) + (halfStar ? '✨' : '') + '☆'.repeat(emptyStars);
@@ -348,4 +483,5 @@ class UIManager {
 }
 
 // Create UI manager instance
-const uiManager = new UIManager();
+var uiManager = window.uiManager = new UIManager();
+window.UIManager = UIManager;

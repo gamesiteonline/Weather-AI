@@ -32,7 +32,11 @@
                 <button id="useLocationBtn" class="location-btn" title="Use my location">
                     📍 Use Location
                 </button>
+                <button id="settingsBtn" class="settings-btn" title="App Settings">
+                    ⚙️ Settings
+                </button>
             </div>
+            <div id="map" class="map-container"></div>
             <div class="location-details">
                 <div id="countryList" class="country-list" aria-hidden="false"></div>
                 <div class="granular-location">
@@ -44,6 +48,7 @@
                     <input id="aiQuestionInput" placeholder="Ask the AI about today's weather..." />
                     <button id="askAiBtn">Ask</button>
                 </div>
+                <div id="sharePanel" class="social-share"></div>
             </div>
         </div>
 
@@ -116,15 +121,22 @@
                         <div class="placeholder">Forecast loading...</div>
                     </div>
                 </div>
-            </div>
-        </main>
+            </div>            <div class="widget-wrapper glass-morphism">
+                <div id="ww_4b6f3b3655c74" v='1.3' loc='id' a='{"t":"responsive","lang":"en","sl_lpl":1,"ids":[],"font":"Arial","sl_ics":"one_a","sl_sot":"celsius","cl_bkg":"image","cl_font":"#FFFFFF","cl_cloud":"#FFFFFF","cl_persp":"#81D4FA","cl_sun":"#FFC107","cl_moon":"#FFC107","cl_thund":"#FF5722"}'>More forecasts: <a href="https://oneweather.org/new_york_city/30_days/" id="ww_4b6f3b3655c74_u" target="_blank">30 day weather forecast NYC</a></div>
+                <script async src="https://app3.weatherwidget.org/js/?id=ww_4b6f3b3655c74"></script>
+            </div>        </main>
 
         <!-- Footer -->
         <footer class="footer">
-            <p class="dev-credit"><span class="dev-badge">FAHAD MOHAME</span> <strong>Fahad Mohamed</strong> — Tanzania 🇹🇿</p>
-            <p>Contact: <a href="mailto:fahadmohamedmalibiche@gmail.com">fahadmohamedmalibiche@gmail.com</a></p>
             <p class="version">Africa Weather AI v1.0</p>
         </footer>
+        <div id="settingsPanel" class="settings-panel hidden glass-morphism">
+            <h3>Developer</h3>
+            <p><strong>Fahad Mohamed</strong></p>
+            <p>Tanzania 🇹🇿</p>
+            <p><a href="mailto:fahadmohamedmalibiche@gmail.com">fahadmohamedmalibiche@gmail.com</a></p>
+            <p>Weather app designed for every African location using immersive visuals, AI guidance, and live weather insights.</p>
+        </div>
     </div>
 
     <!-- Scripts -->

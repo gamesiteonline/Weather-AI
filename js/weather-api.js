@@ -15,7 +15,6 @@ class WeatherAPI {
     async getWeatherByCoordinates(lat, lng, countryName = '') {
         const cacheKey = `${lat},${lng}`;
         
-        // Check cache
         if (this.cache.has(cacheKey)) {
             const cached = this.cache.get(cacheKey);
             if (Date.now() - cached.timestamp < this.cacheExpiry) {
@@ -36,11 +35,15 @@ class WeatherAPI {
 
             const response = await fetch(`${this.baseURL}?${params}`);
             if (!response.ok) throw new Error('Weather API request failed');
+
+            const openMeteoData = await response.json();
+            const [openWeatherData, stormglassData] = await Promise.all([
+                this.getOpenWeatherData(lat, lng),
+                this.getStormGlassData(lat, lng)
+            ]);
+
+            const processedData = this.processWeatherData(openMeteoData, countryName, openWeatherData, stormglassData);
             
-            const data = await response.json();
-            const processedData = this.processWeatherData(data, countryName);
-            
-            // Cache the result
             this.cache.set(cacheKey, {
                 data: processedData,
                 timestamp: Date.now()
@@ -51,6 +54,49 @@ class WeatherAPI {
             console.error('Error fetching weather:', error);
             return this.getDefaultWeather();
         }
+    }
+
+    async getOpenWeatherData(lat, lng) {
+        const apiKey = window.CONFIG?.OPENWEATHER_API_KEY;
+        if (!apiKey) return null;
+
+        try {
+            const url = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lng}&appid=${apiKey}&units=metric`;
+            const response = await fetch(url);
+            if (!response.ok) return null;
+            return await response.json();
+        } catch (error) {
+            console.warn('OpenWeather request failed:', error);
+            return null;
+        }
+    }
+
+    async getStormGlassData(lat, lng) {
+        const apiKey = window.CONFIG?.STORMGLASS_API_KEY;
+        if (!apiKey) return null;
+
+        try {
+            const now = Math.floor(Date.now() / 1000);
+            const start = now;
+            const end = now + 24 * 3600;
+            const url = `https://api.stormglass.io/v2/weather/point?lat=${lat}&lng=${lng}&params=airTemperature,humidity,windSpeed,precipitation&start=${start}&end=${end}`;
+            const response = await fetch(url, {
+                headers: {
+                    Authorization: apiKey
+                }
+            });
+            if (!response.ok) return null;
+            return await response.json();
+        } catch (error) {
+            console.warn('StormGlass request failed:', error);
+            return null;
+        }
+    }
+
+    getStormglassParam(hour, param) {
+        if (!hour || !hour[param]) return null;
+        const value = hour[param];
+        return value.noaa ?? value.sg ?? value.met ?? value.metno ?? null;
     }
 
     async getCountryByGeolocation() {
@@ -105,7 +151,7 @@ class WeatherAPI {
         }
     }
 
-    processWeatherData(data, countryName = '') {
+    processWeatherData(data, countryName = '', openWeatherData = null, stormglassData = null) {
         const current = data.current_weather || {};
         const daily = data.daily || {};
         const hourly = data.hourly || {};
@@ -141,10 +187,18 @@ class WeatherAPI {
 
         const currentTime = current.time || (hourly.time && hourly.time[0]) || '';
         const currentIndex = hourly.time ? hourly.time.indexOf(currentTime) : 0;
-        const humidity = hourly.relativehumidity_2m && currentIndex >= 0 ? hourly.relativehumidity_2m[currentIndex] : 0;
-        const precipitationProbability = hourly.precipitation_probability && currentIndex >= 0 ? hourly.precipitation_probability[currentIndex] : 0;
+        const openWeatherHumidity = openWeatherData?.main?.humidity;
+        const openWeatherWind = openWeatherData?.wind?.speed ? Math.round(openWeatherData.wind.speed * 3.6) : null;
+        const stormglassHour = stormglassData?.hours?.[0] || {};
+        const stormglassHumidity = this.getStormglassParam(stormglassHour, 'humidity');
+        const stormglassWind = this.getStormglassParam(stormglassHour, 'windSpeed');
+
+        const humidity = openWeatherHumidity ?? stormglassHumidity ?? (hourly.relativehumidity_2m && currentIndex >= 0 ? hourly.relativehumidity_2m[currentIndex] : 0);
+        const precipitationProbability = openWeatherData?.rain?.['1h'] ?? (hourly.precipitation_probability && currentIndex >= 0 ? hourly.precipitation_probability[currentIndex] : 0);
         const weatherCode = current.weathercode || (hourly.weathercode && hourly.weathercode[currentIndex]) || 0;
         const weather = getWeatherDescription(weatherCode);
+        const condition = openWeatherData?.weather?.[0]?.description ? this.capitalizeText(openWeatherData.weather[0].description) : weather.desc;
+        const windSpeed = openWeatherWind ?? stormglassWind ?? Math.round(current.windspeed || 0);
 
         const formatForecast = () => {
             if (!Array.isArray(daily.time)) return [];
@@ -157,28 +211,39 @@ class WeatherAPI {
                     temp_min: Math.round(daily.temperature_2m_min[index] || 0),
                     condition: weatherDay.desc,
                     emoji: weatherDay.emoji,
-                    precipitation: daily.precipitation_sum?.[index] || 0,
+                    precipitation: Math.round(daily.precipitation_sum?.[index] || 0),
                     windSpeed: Math.round(daily.wind_speed_10m_max?.[index] || 0)
                 };
             });
         };
+
+        const sunrise = openWeatherData?.sys?.sunrise ? new Date(openWeatherData.sys.sunrise * 1000).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) : '';
+        const sunset = openWeatherData?.sys?.sunset ? new Date(openWeatherData.sys.sunset * 1000).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) : '';
 
         return {
             country: countryName,
             current: {
                 temperature: Math.round(current.temperature || 0),
                 apparentTemperature: Math.round(current.temperature || 0),
-                condition: weather.desc,
+                condition,
                 emoji: weather.emoji,
                 humidity,
-                windSpeed: Math.round(current.windspeed || 0),
+                windSpeed,
                 windDirection: current.winddirection || 0,
                 precipitation: precipitationProbability,
-                precipitationProbability
+                precipitationProbability,
+                sunrise,
+                sunset
             },
             forecast: formatForecast(),
-            timezone: data.timezone
+            timezone: data.timezone,
+            provider: 'Open-Meteo + OpenWeather + StormGlass'
         };
+    }
+
+    capitalizeText(text) {
+        if (!text) return '';
+        return text.charAt(0).toUpperCase() + text.slice(1);
     }
 
     getDefaultWeather() {
@@ -200,4 +265,5 @@ class WeatherAPI {
 }
 
 // Export weather API
-const weatherAPI = new WeatherAPI();
+var weatherAPI = window.weatherAPI = new WeatherAPI();
+window.WeatherAPI = WeatherAPI;

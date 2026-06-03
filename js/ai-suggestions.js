@@ -291,7 +291,41 @@ class AISuggestions {
 
         return Math.max(1, rating);
     }
+
+    ask(question, weather) {
+        if (!question || question.trim().length === 0) return 'Please ask a question about the weather.';
+        const q = question.toLowerCase();
+        const temp = weather?.current?.temperature;
+        const condition = (weather?.current?.condition || '').toLowerCase();
+        const humidity = weather?.current?.humidity;
+        const wind = weather?.current?.windSpeed;
+
+        if (q.includes('rain') || q.includes('raining') || q.includes('will it rain')) {
+            if (condition.includes('rain') || (weather?.current?.precipitation || 0) > 5) return 'Yes — there is a chance of rain. Bring an umbrella and expect wet surfaces.';
+            return 'No significant rain expected today; light showers are possible depending on location.';
+        }
+
+        if (q.includes('temperature') || q.includes('hot') || q.includes('cold') || q.includes('how hot')) {
+            if (typeof temp === 'number') return `Current temperature is ${temp}°C. Dress accordingly.`;
+            return 'Temperature data is not available at the moment.';
+        }
+
+        if (q.includes('safe') || q.includes('danger') || q.includes('risk')) {
+            if ((weather?.current?.precipitation || 0) > 20 || condition.includes('storm')) return 'There may be hazardous conditions — avoid outdoor activities and monitor local advisories.';
+            if (wind > 25) return 'Strong winds detected — secure loose items and avoid exposed areas.';
+            return 'Conditions look generally safe. Take usual precautions for sun and heat.';
+        }
+
+        if (q.includes('what to do') || q.includes('activities') || q.includes('suggest')) {
+            const suggestions = this.generateSuggestions(weather, null).activities;
+            return `Suggested activities: ${suggestions.slice(0,4).join(', ')}`;
+        }
+
+        // Fallback: provide a short summary
+        return this.createWeatherSummary(weather, null);
+    }
 }
 
 // Export AI Suggestions
-const aiSuggestions = new AISuggestions();
+var aiSuggestions = window.aiSuggestions = new AISuggestions();
+window.AISuggestions = AISuggestions;

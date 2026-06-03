@@ -7,6 +7,9 @@ class AppManager {
         this.currentCountry = null;
         this.currentWeather = null;
         this.suggestions = null;
+        this.map = null;
+        this.marker = null;
+        this.autocomplete = null;
         this.init();
     }
 
@@ -16,11 +19,14 @@ class AppManager {
         // Add CSS animations
         this.addAnimationStyles();
         
-        // Try to load a random country on startup
-        this.loadRandomCountry();
-        
         // Add event listeners
         this.setupEventListeners();
+        
+        // Initialize Google Maps and autocomplete if API key exists
+        await this.initGoogleMap();
+        
+        // Try to load a random country on startup
+        this.loadRandomCountry();
     }
 
     setupEventListeners() {
@@ -30,6 +36,94 @@ class AppManager {
         });
     }
 
+    async initGoogleMap() {
+        const apiKey = window.CONFIG?.GOOGLE_MAPS_API_KEY;
+        const mapContainer = document.getElementById('map');
+        if (!apiKey || !mapContainer) return;
+
+        try {
+            await this.loadGoogleMapsScript(apiKey);
+
+            const africaCenter = { lat: 4.2, lng: 21.0 };
+            this.map = new google.maps.Map(mapContainer, {
+                center: africaCenter,
+                zoom: 4,
+                disableDefaultUI: true,
+                styles: [
+                    { elementType: 'geometry', stylers: [{ color: '#0f1419' }] },
+                    { elementType: 'labels.text.stroke', stylers: [{ color: '#242f3e' }] },
+                    { elementType: 'labels.text.fill', stylers: [{ color: '#b0b0b0' }] },
+                    { featureType: 'administrative.country', elementType: 'geometry', stylers: [{ color: '#1d2c4d' }] },
+                    { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#0f172a' }] }
+                ]
+            });
+
+            this.marker = new google.maps.Marker({ map: this.map });
+
+            if (window.google && google.maps && google.maps.places && window.uiManager?.elements.countrySearch) {
+                this.autocomplete = new google.maps.places.Autocomplete(window.uiManager.elements.countrySearch, {
+                    fields: ['geometry', 'name', 'address_components'],
+                    types: ['(regions)']
+                });
+                this.autocomplete.addListener('place_changed', () => {
+                    this.handlePlaceAutocomplete();
+                });
+            }
+        } catch (error) {
+            console.warn('Google Maps initialization failed:', error);
+        }
+    }
+
+    loadGoogleMapsScript(apiKey) {
+        return new Promise((resolve, reject) => {
+            if (window.google && window.google.maps) {
+                resolve();
+                return;
+            }
+
+            window.initGoogleMaps = () => {
+                resolve();
+                delete window.initGoogleMaps;
+            };
+
+            const script = document.createElement('script');
+            script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&callback=initGoogleMaps`;
+            script.async = true;
+            script.defer = true;
+            script.onerror = () => reject(new Error('Failed to load Google Maps script'));
+            document.head.appendChild(script);
+        });
+    }
+
+    handlePlaceAutocomplete() {
+        const place = this.autocomplete.getPlace();
+        if (!place || !place.geometry) return;
+
+        const lat = place.geometry.location.lat();
+        const lng = place.geometry.location.lng();
+        const label = place.name || 'Selected Location';
+
+        this.updateMapMarker(lat, lng, label);
+        this.loadWeatherByCoordinates(lat, lng);
+    }
+
+    updateMapMarker(lat, lng, label = '') {
+        if (!this.map || !this.marker) return;
+        this.marker.setPosition({ lat, lng });
+        this.marker.setTitle(label);
+        this.map.panTo({ lat, lng });
+        this.map.setZoom(7);
+    }
+
+    reorderCountryListByCurrent(currentKey) {
+        const countries = getCountriesList();
+        if (!currentKey) return countries;
+        const normalizedKey = currentKey.toLowerCase();
+        const first = countries.find(c => c.key.toLowerCase() === normalizedKey);
+        if (!first) return countries;
+        return [first, ...countries.filter(c => c.key.toLowerCase() !== normalizedKey)];
+    }
+
     loadRandomCountry() {
         const country = getRandomCountry();
         this.loadWeather(country.key, country.name);
@@ -37,7 +131,7 @@ class AppManager {
 
     async loadWeather(countryKey, countryName) {
         try {
-            uiManager.showLoadingState();
+            window.uiManager.showLoadingState();
             
             const countryData = getCountryByKey(countryKey);
             if (!countryData) {
@@ -47,7 +141,7 @@ class AppManager {
             this.currentCountry = { key: countryKey, ...countryData };
             
             // Fetch weather data
-            const weather = await weatherAPI.getWeatherByCoordinates(
+            const weather = await window.weatherAPI.getWeatherByCoordinates(
                 countryData.coordinates.lat,
                 countryData.coordinates.lng,
                 countryName
@@ -56,34 +150,38 @@ class AppManager {
             this.currentWeather = weather;
             
             // Generate AI suggestions
-            this.suggestions = aiSuggestions.generateSuggestions(weather, countryKey);
+            this.suggestions = window.aiSuggestions.generateSuggestions(weather, countryKey);
             
             // Update UI
             this.updateUI();
             
             // Update search input
-            if (uiManager.elements.countrySearch) {
-                uiManager.elements.countrySearch.value = countryName;
+            if (window.uiManager.elements.countrySearch) {
+                window.uiManager.elements.countrySearch.value = countryName;
             }
 
-            uiManager.showNotification(`Loaded weather for ${countryName}`, 'success');
+            window.uiManager.displayCountryList(this.reorderCountryListByCurrent(countryKey));
+            this.updateMapMarker(countryData.coordinates.lat, countryData.coordinates.lng, countryName);
+            window.uiManager.showNotification(`Loaded weather for ${countryName}`, 'success');
             
         } catch (error) {
             console.error('Error loading weather:', error);
-            uiManager.showErrorState('Failed to load weather for this country');
-            uiManager.showNotification('Error loading weather', 'error');
+            if (window.uiManager) {
+                window.uiManager.showErrorState('Failed to load weather for this country');
+                window.uiManager.showNotification('Error loading weather', 'error');
+            }
         }
     }
 
     async loadWeatherByCoordinates(lat, lng) {
         try {
-            uiManager.showLoadingState();
+            window.uiManager.showLoadingState();
             
             // Get country info from coordinates
-            const locationInfo = await weatherAPI.searchCountryByCoordinates(lat, lng);
+            const locationInfo = await window.weatherAPI.searchCountryByCoordinates(lat, lng);
             
             // Fetch weather data
-            const weather = await weatherAPI.getWeatherByCoordinates(
+            const weather = await window.weatherAPI.getWeatherByCoordinates(
                 lat,
                 lng,
                 locationInfo?.country || 'Your Location'
@@ -106,25 +204,29 @@ class AppManager {
             }
 
             if (countryKey) {
-                this.suggestions = aiSuggestions.generateSuggestions(weather, countryKey);
+                this.suggestions = window.aiSuggestions.generateSuggestions(weather, countryKey);
             } else {
-                this.suggestions = aiSuggestions.generateSuggestions(weather, null);
+                this.suggestions = window.aiSuggestions.generateSuggestions(weather, null);
             }
             
             // Update UI
             this.updateUI();
             
             const displayName = locationInfo?.city || locationInfo?.country || 'Current Location';
-            if (uiManager.elements.countrySearch) {
-                uiManager.elements.countrySearch.value = displayName;
+            if (window.uiManager.elements.countrySearch) {
+                window.uiManager.elements.countrySearch.value = displayName;
             }
 
-            uiManager.showNotification(`Loaded weather for ${displayName}`, 'success');
+            window.uiManager.displayCountryList(this.reorderCountryListByCurrent(countryKey));
+            this.updateMapMarker(lat, lng, displayName);
+            window.uiManager.showNotification(`Loaded weather for ${displayName}`, 'success');
             
         } catch (error) {
             console.error('Error loading weather by coordinates:', error);
-            uiManager.showErrorState('Failed to load weather for your location');
-            uiManager.showNotification('Error: Could not determine country', 'error');
+            if (window.uiManager) {
+                window.uiManager.showErrorState('Failed to load weather for your location');
+                window.uiManager.showNotification('Error: Could not determine country', 'error');
+            }
         }
     }
 
@@ -135,14 +237,23 @@ class AppManager {
         this.currentWeather.rating = this.suggestions.overallRating;
 
         // Update all UI sections
-        uiManager.displayWeatherWidget(this.currentWeather, this.currentCountry?.name || 'Unknown');
-        uiManager.displayCurrentWeather(this.currentWeather);
-        uiManager.displayAISuggestions(this.suggestions);
-        uiManager.displayActivities(this.suggestions);
-        uiManager.displayCuisine(this.suggestions);
-        uiManager.displayWarnings(this.suggestions);
-        uiManager.displayAdvantages(this.suggestions);
-        uiManager.displayForecast(this.currentWeather);
+        window.uiManager.displayWeatherWidget(this.currentWeather, this.currentCountry?.name || 'Unknown');
+        window.uiManager.displayCurrentWeather(this.currentWeather);
+        window.uiManager.displayAISuggestions(this.suggestions);
+        window.uiManager.displayActivities(this.suggestions);
+        window.uiManager.displayCuisine(this.suggestions);
+        window.uiManager.displayWarnings(this.suggestions);
+        window.uiManager.displayAdvantages(this.suggestions);
+        window.uiManager.displayForecast(this.currentWeather);
+        window.uiManager.renderShareButtons(this.currentWeather, this.currentCountry?.name || 'Current Location');
+        // Update Three.js visual effects based on current weather
+        try {
+            if (window.backgroundScene && typeof window.backgroundScene.updateWeatherEffects === 'function') {
+                window.backgroundScene.updateWeatherEffects(this.currentWeather);
+            }
+        } catch (e) {
+            console.warn('Background update failed:', e);
+        }
     }
 
     addAnimationStyles() {
@@ -395,11 +506,30 @@ class AppManager {
     }
 }
 
-// Initialize app when DOM is ready
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-        window.appManager = new AppManager();
-    });
-} else {
+// Ensure global instances exist for browser script loading order.
+function initializeAppWhenReady() {
+    if (typeof window.WeatherAPI === 'undefined' || typeof window.AISuggestions === 'undefined' || typeof window.UIManager === 'undefined') {
+        setTimeout(initializeAppWhenReady, 50);
+        return;
+    }
+
+    if (!window.weatherAPI) {
+        window.weatherAPI = new WeatherAPI();
+    }
+
+    if (!window.aiSuggestions) {
+        window.aiSuggestions = new AISuggestions();
+    }
+
+    if (!window.uiManager) {
+        window.uiManager = new UIManager();
+    }
+
     window.appManager = new AppManager();
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeAppWhenReady);
+} else {
+    initializeAppWhenReady();
 }
