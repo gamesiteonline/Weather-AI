@@ -1,0 +1,26 @@
+Create a premium 3D marketing web app UI for a luxury brand. 
+
+**Visual Style:**
+- Luxury + Modern SaaS: inspired by Peter Tarka's Molton Brown 3D renders + Jibonuix07 clean UI
+- 3D Product Showcase: Cinematic 3D objects floating with soft studio lighting, subtle reflections, depth of field
+- Color Palette: Deep charcoal #0A0A0B background, warm gold #D4AF37 + soft cream accents, with neon gradient highlights like Electric Blue #3B82F6
+- Materials: Glassmorphism cards, frosted blur, metallic gold edges, velvety texture on 3D elements
+- Typography: Bold geometric sans for headings, clean legible sans for body. Extreme weight contrast
+
+**Layout & UI:**
+- Hero Section: Massive 3D product visual center stage with slow parallax rotation, floating particles, soft glow. Minimal headline + "Get Started" button with glowing gold border
+- Dashboard Grid: Asymmetrical Bento Grid layout for marketing metrics, campaign cards, analytics widgets
+- Navigation: Holographic glassmorphism navbar at top, minimal icons
+- Cards: Floating 3D cards with subtle tilt/parallax on hover, soft shadows, liquid hover states
+- Sections: Overlapping elements, negative space for depth. Avoid bootstrap centered layout
+
+**Motion & Interactivity:**
+- 3D elements react to mouse movement + scroll 
+- Staggered reveal animations as user scrolls down
+- Campaign cards float up + blur-in on scroll
+- Buttons have magnetic hover effect + liquid fill animation
+- Background shader/mesh gradient that shifts slowly
+
+**Tech & Output:**
+Design for React + Framer Motion + Three.js integration. Responsive, retina-ready. Dark mode focus.
+Mood: Premium, trustworthy, innovative, luxury spa meets tech startup
