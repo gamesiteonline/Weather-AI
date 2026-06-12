@@ -1,0 +1,61 @@
+# SYSTEM INSTRUCTION: DEVELOP FALIZ CODER (FULL-STACK GENERATION ENGINE)
+
+You are tasked with writing the complete, production-ready source code for **Faliz Coder** — an autonomous, self-healing, full-stack project generator. 
+
+The goal of this engine is to allow users to generate massive, production-grade applications (exceeding 5,000+ lines of code across multiple directories) on their local machines. It bypasses LLM output token limits by programmatically orchestrating smaller, highly targeted file-generation tasks and writing them directly to a local workspace.
+
+---
+
+## SECTION 1: SYSTEM ARCHITECTURE OF THE ENGINE
+
+You must write the complete, executable code for the Faliz Coder engine (using Python or TypeScript). The engine must consist of the following core modules:
+
+### 1. Cognitive Orchestrator & Model Router ("The Brain")
+- Create a model-agnostic gateway interface (`BaseLLMProvider`).
+- Implement concrete adapters for Anthropic (Claude), OpenAI (GPT), Google (Gemini), and Ollama (for offline local models).
+- The orchestrator must parse a project blueprint and dynamically plan the file-generation sequence, determining which model to call based on the file's complexity.
+
+### 2. Full-Stack Blueprint Parser (SSOT)
+- Define a strict JSON schema for project blueprints. The blueprint must support defining:
+  - Frontend: Framework (e.g., React/Next.js), State Management, Page Routes, UI Component mappings.
+  - Backend: Framework (e.g., FastAPI, Express), API Endpoints, Database Models, Schemas, Controllers.
+  - Infrastructure: Dockerfiles, Docker Compose, Database migrations, and CI/CD config.
+- The parser must read this blueprint and construct a Directed Acyclic Graph (DAG) representing the order in which files must be generated (e.g., Database schemas must be generated before API routes; API routes must be generated before Frontend API clients).
+
+### 3. Workspace File Manager & Symbol Table Tracker
+- **Symbol Table:** An internal memory database that extracts and tracks all generated functions, classes, API endpoints, and types. This allows the engine to ensure that the frontend fetch requests match the backend endpoint signatures exactly.
+- **Incremental File Writer:** A module that physically writes generated code chunks to the local disk, keeping track of progress using a state file (`build_state.json`) so the user can pause and resume generation.
+
+### 4. Self-Healing & Validation Engine (SAVE)
+- Implement a module that runs local compiler/linter commands (e.g., `python -m py_compile`, `tsc --noEmit`, or eslint) depending on the target language of the generated files.
+- If a generated file fails validation, the engine must capture the stdout error logs, send them back to the LLM along with the original file, generate a patch, and overwrite the file until it compiles successfully.
+
+---
+
+## SECTION 2: DELIVERABLES (What you must output in this chat)
+
+To deliver a working prototype of Faliz Coder, provide the following complete implementations:
+
+### 1. The Core Engine Source Code
+Write the fully implemented, production-grade codebase for the generator tool (choose Python or TypeScript).
+- No placeholder comments like `# TODO: implement this later`.
+- Provide the CLI entry point, the LLM Provider classes, the DAG builder, the File Writer, and the SAVE Validation runner.
+
+### 2. Standard Blueprint Schema Definition
+Provide a sample `blueprint.json` file showing how a developer can specify a complete full-stack application (e.g., a Next.js frontend connected to a FastAPI backend with PostgreSQL).
+
+### 3. Usage & Setup Guide
+Write clear instructions on:
+- How to install the generator's dependencies.
+- How to configure API keys (OpenAI, Anthropic, Gemini) or local Ollama endpoints.
+- How to run the CLI to parse a blueprint and generate a full-stack project locally.
+
+---
+
+## SECTION 3: SYSTEM CONSTRAINTS
+
+- ❌ **Do NOT attempt to write a 5,000-line demo application in this chat.** Your output should be the code for the **Faliz Coder tool itself**, allowing *me* to generate the 5,000-line apps on my own machine.
+- ❌ Do NOT use mock functions for the API integration; write actual integration code using the standard HTTP requests or official SDK patterns.
+- ❌ Avoid hardcoding paths. Ensure the workspace creator handles paths dynamically across Windows, macOS, and Linux.
+
+**BEGIN DEVELOPMENT.** Provide the complete, clean code for the Faliz Coder Engine.
